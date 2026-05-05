@@ -61,6 +61,18 @@ image: file
 pytest
 ```
 
+## OCR-Fallback и PythonAnywhere
+
+Сервис сначала пытается извлечь текст через удалённый API OCR.space. Это позволяет работать на PythonAnywhere без установки тяжёлых пакетов `easyocr` и `torch`.
+
+Если у вас есть API-ключ OCR.space, задайте его через переменную окружения:
+
+```bash
+export OCR_SPACE_API_KEY=your_api_key
+```
+
+Без ключа используется публичный `helloworld` ключ, но он подходит только для тестов.
+
 ## Развёртывание на PythonAnywhere
 
 1. Залейте проект на GitHub или загрузите файлы через вкладку `Files`.

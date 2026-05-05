@@ -1,15 +1,22 @@
+import io
+import os
+
+import httpx
 from PIL import Image, ImageEnhance, ImageOps
 
 
 def extract_text(image: Image.Image) -> tuple[str, str | None, str | None]:
     image = _preprocess_image(image)
 
-    text, backend, error = _extract_text_easyocr(image)
-    if text or error:
+    text, backend, error = _extract_text_remote(image)
+    if text:
         return text, backend, error
 
-    text, backend, error = _extract_text_pytesseract(image)
-    return text, backend, error
+    text, backend, error = _extract_text_easyocr(image)
+    if text:
+        return text, backend, error
+
+    return _extract_text_pytesseract(image)
 
 
 def _preprocess_image(image: Image.Image) -> Image.Image:
@@ -26,6 +33,39 @@ def _preprocess_image(image: Image.Image) -> Image.Image:
     image = ImageEnhance.Contrast(image).enhance(1.5)
     image = ImageEnhance.Sharpness(image).enhance(1.3)
     return image
+
+
+def _extract_text_remote(image: Image.Image) -> tuple[str, str | None, str | None]:
+    api_key = os.getenv("OCR_SPACE_API_KEY", "helloworld")
+    try:
+        with io.BytesIO() as buffer:
+            image.save(buffer, format="PNG")
+            buffer.seek(0)
+            files = {"file": ("receipt.png", buffer, "image/png")}
+            data = {"apikey": api_key, "language": "rus+eng", "isOverlayRequired": False}
+            response = httpx.post(
+                "https://api.ocr.space/parse/image",
+                data=data,
+                files=files,
+                timeout=60.0,
+            )
+            response.raise_for_status()
+            result = response.json()
+    except Exception as exc:
+        return "", "ocr_space", f"ocr_space request failed: {exc}"
+
+    if result.get("IsErroredOnProcessing"):
+        error = result.get("ErrorMessage")
+        if isinstance(error, list):
+            error = "; ".join(str(item) for item in error)
+        return "", "ocr_space", error or "ocr_space returned error"
+
+    parsed = result.get("ParsedResults")
+    if not parsed:
+        return "", "ocr_space", "ocr_space returned no parsed results"
+
+    text = parsed[0].get("ParsedText", "").strip()
+    return text, "ocr_space", None
 
 
 def _extract_text_easyocr(image: Image.Image) -> tuple[str, str | None, str | None]:
