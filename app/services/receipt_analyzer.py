@@ -4,7 +4,12 @@ from app.services import fraud_service, image_analysis_service, ocr_service, par
 
 
 def analyze_receipt(image: Image.Image) -> dict:
-    text = ocr_service.extract_text(image)
+    ocr_result = ocr_service.extract_text(image)
+    if isinstance(ocr_result, tuple):
+        text, ocr_backend = ocr_result
+    else:
+        text, ocr_backend = ocr_result, None
+
     data = parser_service.parse_receipt_text(text)
     qr_data = qr_service.extract_qr_payload(image)
     image_risks = image_analysis_service.detect_tampering(image)
@@ -22,6 +27,7 @@ def analyze_receipt(image: Image.Image) -> dict:
         "risk_score": result["risk_score"],
         "reason": result["reason"],
         "ocr_text": text,
+        "ocr_backend": ocr_backend,
         "qr_payload": qr_data,
         "extracted_data": data,
     }
