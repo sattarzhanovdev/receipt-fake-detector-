@@ -1,15 +1,15 @@
 from PIL import Image, ImageEnhance, ImageOps
 
 
-def extract_text(image: Image.Image) -> tuple[str, str | None]:
+def extract_text(image: Image.Image) -> tuple[str, str | None, str | None]:
     image = _preprocess_image(image)
 
-    text, backend = _extract_text_easyocr(image)
-    if text:
-        return text, backend
+    text, backend, error = _extract_text_easyocr(image)
+    if text or error:
+        return text, backend, error
 
-    text, backend = _extract_text_pytesseract(image)
-    return text, backend
+    text, backend, error = _extract_text_pytesseract(image)
+    return text, backend, error
 
 
 def _preprocess_image(image: Image.Image) -> Image.Image:
@@ -28,30 +28,36 @@ def _preprocess_image(image: Image.Image) -> Image.Image:
     return image
 
 
-def _extract_text_easyocr(image: Image.Image) -> tuple[str, str | None]:
+def _extract_text_easyocr(image: Image.Image) -> tuple[str, str | None, str | None]:
     try:
         import easyocr
-    except ImportError:
-        return "", None
+    except ImportError as exc:
+        return "", None, f"easyocr import failed: {exc}"
 
     try:
         import numpy as np
+    except ImportError as exc:
+        return "", None, f"numpy import failed: {exc}"
+
+    try:
         reader = easyocr.Reader(["ru", "en"], gpu=False)
         result = reader.readtext(np.array(image))
         text = "\n".join([item[1] for item in result]).strip()
-        return text, "easyocr"
-    except Exception:
-        return "", None
+        return text, "easyocr", None
+    except Exception as exc:
+        return "", None, f"easyocr failed: {exc}"
 
 
-def _extract_text_pytesseract(image: Image.Image) -> tuple[str, str | None]:
+def _extract_text_pytesseract(image: Image.Image) -> tuple[str, str | None, str | None]:
     try:
         import pytesseract
-    except ImportError:
-        return "", None
+    except ImportError as exc:
+        return "", None, f"pytesseract import failed: {exc}"
 
     try:
         text = pytesseract.image_to_string(image, lang="rus+eng", config="--psm 6").strip()
-        return text, "pytesseract" if text else ("", None)[1]
-    except Exception:
-        return "", None
+        if text:
+            return text, "pytesseract", None
+        return "", None, "pytesseract returned empty text"
+    except Exception as exc:
+        return "", None, f"pytesseract failed: {exc}"

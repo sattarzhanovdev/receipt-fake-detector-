@@ -20,5 +20,6 @@ class ReceiptCheckResponse(BaseModel):
     reason: str
     ocr_text: str | None = None
     ocr_backend: str | None = None
+    ocr_error: str | None = None
     qr_payload: str | None = None
     extracted_data: ExtractedReceiptData
