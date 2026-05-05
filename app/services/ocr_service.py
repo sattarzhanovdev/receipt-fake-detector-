@@ -54,7 +54,7 @@ def _extract_text_remote(image: Image.Image) -> tuple[str, str | None, str | Non
             image.save(buffer, format="PNG")
             buffer.seek(0)
             files = {"file": ("receipt.png", buffer, "image/png")}
-            data = {"apikey": api_key, "language": "rus+eng", "isOverlayRequired": False}
+            data = {"apikey": api_key, "isOverlayRequired": False}
             response = httpx.post(
                 "https://api.ocr.space/parse/image",
                 data=data,
