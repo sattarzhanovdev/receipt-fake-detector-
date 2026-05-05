@@ -3,11 +3,14 @@ from PIL import Image
 
 def extract_text(image: Image.Image) -> str:
     try:
-        import pytesseract
+        import easyocr
     except ImportError:
         return ""
 
     try:
-        return pytesseract.image_to_string(image, lang="rus+eng").strip()
+        reader = easyocr.Reader(['ru', 'en'], gpu=False)
+        result = reader.readtext(image)
+        text = "\n".join([item[1] for item in result])
+        return text.strip()
     except Exception:
         return ""
