@@ -18,4 +18,6 @@ class ReceiptCheckResponse(BaseModel):
     confidence: float = Field(ge=0, le=1)
     risk_score: int = Field(ge=0, le=100)
     reason: str
+    ocr_text: str | None = None
+    qr_payload: str | None = None
     extracted_data: ExtractedReceiptData

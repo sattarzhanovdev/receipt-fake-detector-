@@ -21,5 +21,7 @@ def analyze_receipt(image: Image.Image) -> dict:
         "confidence": result["confidence"],
         "risk_score": result["risk_score"],
         "reason": result["reason"],
+        "ocr_text": text,
+        "qr_payload": qr_data,
         "extracted_data": data,
     }
