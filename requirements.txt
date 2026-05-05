@@ -2,8 +2,8 @@ Flask==2.3.3
 httpx==0.28.1
 pillow==11.1.0
 pydantic==2.10.5
-pytesseract==0.3.13
 pytest==8.3.4
 
-# Optional runtime integrations:
+# Optional runtime integrations (comment out if system packages unavailable):
+# pytesseract==0.3.13
 # pyzbar==0.1.9
