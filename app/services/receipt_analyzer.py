@@ -39,14 +39,3 @@ def analyze_receipt(image: Image.Image) -> dict:
         "qr_payload": qr_data,
         "extracted_data": data,
     }
-
-    return {
-        "is_fake": result["is_fake"],
-        "confidence": result["confidence"],
-        "risk_score": result["risk_score"],
-        "reason": result["reason"],
-        "ocr_text": text,
-        "ocr_backend": ocr_backend,
-        "qr_payload": qr_data,
-        "extracted_data": data,
-    }

@@ -11,12 +11,24 @@ def extract_text(image: Image.Image) -> tuple[str, str | None, str | None]:
     text, backend, error = _extract_text_remote(image)
     if text:
         return text, backend, error
+    
+    remote_error = error
 
     text, backend, error = _extract_text_easyocr(image)
     if text:
         return text, backend, error
+    
+    easy_error = error
 
-    return _extract_text_pytesseract(image)
+    text, backend, error = _extract_text_pytesseract(image)
+    if text:
+        return text, backend, error
+    
+    if remote_error:
+        return "", "ocr_space", remote_error
+    if easy_error:
+        return "", "easyocr", easy_error
+    return "", None, error
 
 
 def _preprocess_image(image: Image.Image) -> Image.Image:
